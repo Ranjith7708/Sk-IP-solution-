@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const initSqlJs = require("sql.js");
@@ -12,7 +13,13 @@ app.get("/", (req, res) => {
   res.send("SK IP Solution API is running 🚀");
 });
 
-initSqlJs()
+// Explicitly locate the sql.js WASM binary (same dir as the resolved module)
+const wasmPath = path.join(
+  path.dirname(require.resolve("sql.js")),
+  "sql-wasm.wasm"
+);
+
+initSqlJs({ locateFile: () => wasmPath })
   .then(SQL => {
     db = new SQL.Database();
     db.run(`
@@ -31,5 +38,5 @@ initSqlJs()
   })
   .catch(err => {
     console.error("sql.js init failed:", err);
-    process.exit(1); // crash with clear error in logs
+    process.exit(1);
   });
